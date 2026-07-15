@@ -92,6 +92,98 @@ class _ChatScreenState extends State<ChatScreen> {
             });
         }
 
+        PrferredSizeWidget _buildAppBar() {
+            return AppBar(
+                title: const Text(
+                    'Kiwiz',
+                    style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                ),
+                backgroundColor: Colors.green.shad700,
+                elevation: 2,
+                actions: [
+                    // Cuotes remaining
+                    StreamBuilder<ProfileModel>(
+                        stream: SupabaseService().profileStream(),
+                        builder:(context, snapshot) {
+                            if (snapshot.hasData) {
+                                final profile = snapshot.data!;
+                                return Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                    margin: const EdgeInsets.only(right: 16),
+                                    decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.2),
+                                        borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Row(
+                                        children: [
+                                            const Icon(Icons.bolt, color: Colors.white, size: 18),
+                                            const SizedBox(width: 6),
+                                            Text(
+                                                'Consultas de IA: ${profile.chatUsed} / ${profile.chatLimit}',
+                                                style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w500,
+                                                ),
+                                            ),
+                                        ],
+                                    ),
+                                );
+                            }
+                            return Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                margin: const EdgeInsets.only(right: 16),
+                                child: const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                    ),
+                                ),
+                            );
+                        },
+                    ),
+                ],
+            );
+        }
+
+        Widget _buildChatBubble(Message message) {
+            final isUser = message.isUser;
+
+            return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                    mainAxisAlignment: isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+                    children: [
+                        Container(
+                            constraints: BoxConstraints(
+                                maxWidth: MediaQuery.of(context).size.width * 0.75,
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            decoration: BoxDecoration(
+                                color: isUser ? Colors.green.shade600 : Colors.grey.shade200,
+                                borderRadius: BorderRadius.only(
+                                    topLeft: const Radius.circualr(16),
+                                    topRight: const Radius.circular(16),
+                                    bottomLeft: isUser ? const Radius.circualr(16): const Radius.circular(4),
+                                    bottomRight: isUser ? const Radius.circualr(4) : const Radius.circular(16),
+                                ),
+                            ),
+                            child: Text(
+                                message.content,
+                                style: TextStyle(
+                                    color: isUser ? Colors.white : Colors.black87,
+                                    fontSize: 15,
+                                    height: 1.4,
+                                ),
+                            ),
+                        ),
+                    ],
+                ),
+            );
+        }
+
         
     }
 }
