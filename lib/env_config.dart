@@ -14,7 +14,6 @@ class EnvConfig {
 
   static Future<void> init() async {
     try {
-      // Charge the variable environment
       await dotenv.load(fileName: ".env");
       
       final envUrl = dotenv.env['SUPABASE_URL'];
@@ -33,12 +32,6 @@ class EnvConfig {
       print('Configuración cargada desde .env y almacenada de forma segura');
     } catch (e) {
       print('Error al inicializar configuración: $e');
-      if (kDebugMode) {
-        _cachedSupabaseUrl = 'https://qchivwslujmayhxxyxdr.supabase.co';
-        _cachedSupabaseAnonKey = 'sb_publishable_TDNy9hgfPAR8-Mpm-ibKhA_MrnDBGN7';
-      } else {
-        rethrow;
-      }
     }
   }
   
@@ -54,7 +47,7 @@ class EnvConfig {
         return stored;
       }
     } catch (e) {
-      print('⚠️ Error al leer almacenamiento seguro: $e');
+      print('Error al leer almacenamiento seguro: $e');
     }
     
     throw Exception('No se pudo obtener la URL de Supabase');
@@ -72,7 +65,7 @@ class EnvConfig {
         return stored;
       }
     } catch (e) {
-      print('Error al leer almacenamiento seguro: $e');
+      print(' Error al leer almacenamiento seguro: $e');
     }
     
     throw Exception('No se pudo obtener la Anon Key de Supabase');
