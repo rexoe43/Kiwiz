@@ -1,34 +1,117 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../services/supebase_service.dart';
+import '../services/supabase_service.dart';
 
-// Model of the message
 class Message {
-    final String content;
-    final bool isUser;
-    final DateTime timestamp;
+  final String content;
+  final bool isUser;
+  final DateTime timestamp;
 
-    Message({
-        required this.content,
-        required this.isUser,
-        DateTime? timestamp,
-    }) : timestamp = timestamp ?? DateTime.now();
+  Message({
+    required this.content,
+    required this.isUser,
+    DateTime? timestamp,
+  }) : timestamp = timestamp ?? DateTime.now();
 
-    // Copy with the new values
-    Message copyWith({
-        String? content,
-        bool? isUser,
-        DateTime? timestamp,
-    }) {
-        return Message(
-            contetn: content ?? this.content,
-            isUser: isUser ?? this.isUser,
-            timestamp: timestamp ?? this.timestamp,
-        );
-    }
+  
+  Message copyWith({
+    String? content,
+    bool? isUser,
+    DateTime? timestamp,
+  }) {
+    return Message(
+      content: content ?? this.content,
+      isUser: isUser ?? this.isUser,
+      timestamp: timestamp ?? this.timestamp,
+    );
+  }
 }
 
-// Provider for the chat
+// Provider for the chat funcionality
 class ChatProvider extends ChangeNotifier {
-    final SupabaseService _supabaseService = SupabaseService();
+  final SupabaseService _supabaseService = SupabaseService();
+  
+  List<Message> _messages = [];
+  bool _isLoading = false;
+  String? _error;
+
+  // Getters
+  List<Message> get messages => _messages;
+  bool get isLoading => _isLoading;
+  String? get error => _error;
+
+  // Clear the error
+  void clearError() {
+    _error = null;
+    notifyListeners();
+  }
+
+  
+  Future<bool> sendMessage(String content) async {
+    if (content.trim().isEmpty) return false;
+
+    // Verify if the user has remaining chats
+    final profile = await _supabaseService.getProfile();
+    if (!profile.hasRemainingChats) {
+      _error = 'Has agotado tus créditos mensuales de IA';
+      notifyListeners();
+      return false;
+    }
+
+    
+    _messages.add(Message(content: content, isUser: true));
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      
+      final response = await _supabaseService._client.functions.invoke(
+        'chat-llama', // Nombre de tu Edge Function
+        body: {
+          'message': content,
+          'history': _messages
+              .where((m) => !m.isUser) 
+              .map((m) => m.content)
+              .toList(),
+        },
+      );
+
+      
+      if (response.data != null) {
+        final aiResponse = response.data['response'] as String? ?? 
+                          'Lo siento, no pude procesar tu consulta.';
+        
+        _messages.add(Message(content: aiResponse, isUser: false));
+        
+        // Update the credits
+        await _supabaseService.updateChatsUsed(
+          (await _supabaseService.getProfile()).chatsUsed + 1
+        );
+        
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        throw Exception('Respuesta vacía de la IA');
+      }
+    } catch (e) {
+      _error = 'Error al procesar tu consulta: ${e.toString()}';
+      _isLoading = false;
+      notifyListeners();
+      
+      // If the user fail to delete the message
+      // _messages.removeLast();
+      // notifyListeners();
+      
+      return false;
+    }
+  }
+
+  // Clear the History
+  void clearChatHistory() {
+    _messages.clear();
+    _error = null;
+    notifyListeners();
+  }
 }
