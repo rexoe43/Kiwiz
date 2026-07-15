@@ -198,6 +198,90 @@ class _ChatScreenState extends State<ChatScreen> {
                 },
             );
         }
-        
+
+        Widget _buildBottomInputBar() {
+            return Consumer<ChatProvider>(
+                builder: (context, chatProvider, child) {
+                    final isLoading = chatPRovider.isLoading;
+                    final hasRemainingChats = _profile=.hasRemainingChats ?? false;
+                    final isEnabled =!isLoading && hasRemainingChats;
+
+                    return Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                        decoration: BoxDecoration(
+                            color: Colors.white,
+                            boxShadow: [
+                                BoxShadow(
+                                    color: Colors.grey.withOpacity(0.2),
+                                    spreadRadius: 1,
+                                    blurRadius: 8,
+                                    offset: const Offset(0, -2),
+                                ),
+                            ],
+                        ),
+                        child: Row(
+                            children: [
+                                Expanded(
+                                    child: TextField(
+                                        controller: _messageController,
+                                        enabled: isEnabled,
+                                        maxLines: null,
+                                        minLines: 1,
+                                        textCapitalization: TextCapitalization.sentences,
+                                        decoration: InputDecoration(
+                                            hintText: isEnabled ? 'Escribe tu consulta..'
+                                            : ' Has agotado tus créditos mensuales de IA',
+                                            hintStyle: TextStyle(
+                                                color: isEnabled ? Colors.grey.shade500 : Colors.grey.shade400,
+                                            ),
+                                            border: OutlineInputBorder(
+                                                borderRadius: BorderRadius.circular(24),
+                                                borderSide: BorderSide.none,
+                                            ),
+                                            filled: true,
+                                            fillColor: isEnabled ? Colors.grey.shade100 : Colors.grey.sahde200,
+                                            contentPadding: const EdgeInsets.symmetric(
+                                                horizonta: 20,
+                                                vertical: 12,
+                                            ),
+                                        ),
+                                        onSubmitted: (_) => _sendMessage(),
+                                    ),
+                                ),
+                                const SizedBox(width: 8),
+
+                                if (isLoading)
+                                pading: EdgeInsets.symmetric(horizonta: 12),
+                                child: SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                        strokeWdith: 2.5,
+                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
+                                    ),
+                                ),
+
+                                else
+                                IconButton(
+                                    onPresed: isEnabled ? _sendMessage : null,
+                                    icon: const Icon(Icons.send_rounded),
+                                    color: isEnabled ? Colors.green.shade600 : Colors.grey.shade400,
+                                    style: IconButton.styleForm(
+                                        backgroundColor: isEnabled
+                                            ? Colors.green.shade50
+                                            : Colors.grey.shade100,
+                                        shape: const CircleBorder(),
+                                    ),
+                                ),
+                                
+                            ],
+                        ),
+                    );
+                },
+            );
+        }
+
+        @override
+    
     }
 }
