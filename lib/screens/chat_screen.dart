@@ -184,6 +184,20 @@ class _ChatScreenState extends State<ChatScreen> {
             );
         }
 
+        Widget _buildChatHistory() {
+            return Consumer<ChatProvider>(
+                builder: (context, chatProvider, child) {
+                    return ListView.builder(
+                        controller: _scrollController,
+                        padding: const EdgeInsets.only(top: 16, bottom: 16),
+                        itemCount: chatProvider.message.length,
+                        itemBuilder: (context, index) {
+                            return _buildChatBubble(chatProvider.messages[index]);
+                        },
+                    );
+                },
+            );
+        }
         
     }
 }
