@@ -19,6 +19,9 @@
     "net"
   ],
   "[typescript]": {
-    "editor.defaultFormatter": "denoland.vscode-deno"
+    "editor.defaultFormatter": "denoland.vscode-deno",
+    "deno.enable": true,
+    "deno.unstable": true,
+    "deno.importMap": "./supabase/functions/chat-llama/import_map.json"
   }
 }

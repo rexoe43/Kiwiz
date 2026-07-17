@@ -1,46 +1,45 @@
-// Follow this setup guide to integrate the Deno language server with your editor:
-// https://deno.land/manual/getting_started/setup_your_environment
-// This enables autocomplete, go to definition, etc.
+// supabase/functions/chat-llama/index.ts
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
-// Setup type definitions for built-in Supabase Runtime APIs
-import "@supabase/functions-js/edge-runtime.d.ts";
-import { withSupabase } from "@supabase/server";
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
 
-console.log("Hello from Functions!");
+serve(async (req: Request) => {
+  // Handle CORS preflight
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
+  }
 
-// This endpoint uses 'publishable' | 'secret' access, apiKey is required.
-// Use publishable for Client-facing, key-validated endpoints
-// Use secret for Server-to-server, internal calls
-export default {
-  fetch: withSupabase({ auth: ["publishable", "secret"] }, async (req, ctx) => {
-    // Called by another service with a secret key
-    // ctx.supabaseAdmin bypasses RLS — use for privileged operations
-    /*
-    if (ctx.authMode === "secret") {
-      const { user_id } = await req.json();
-      const { data } = await ctx.supabaseAdmin.auth.admin.getUserById(user_id);
+  try {
+    const { message } = await req.json() as { message: string }
+    
+    // Respuestas variadas de Kiwiz
+    const respuestas = [
+      ` ¡Hola! Soy Kiwiz, tu asistente de estudio. Recibí tu mensaje: "${message}"\n\n¿En qué materia necesitas ayuda? ¡Estoy aquí para ti!`,
+      `¡Excelente pregunta! "${message}"\n\nVamos a analizarlo juntos paso a paso. ¿Qué parte te genera más dudas?`,
+      `Kiwiz reportándose. "${message}" es un tema muy interesante.\n\n¿Quieres que profundice en algún aspecto específico?`,
+      `Recibido: "${message}"\n\nDéjame pensar en una buena respuesta para ti. Mientras tanto, ¿tienes alguna otra pregunta?`
+    ]
+    
+    const respuesta = respuestas[Math.floor(Math.random() * respuestas.length)]
 
-      return Response.json({
-        email: data?.user?.email,
-      });
-    }
-    */
-
-    const { name } = await req.json();
-
-    return Response.json({
-      message: `Hello ${name}!`,
-    });
-  }),
-};
-
-/* To invoke locally:
-
-  1. Run `supabase start` (see: https://supabase.com/docs/reference/cli/supabase-start)
-  2. Make an HTTP request:
-
-  curl -i --location --request POST 'http://127.0.0.1:54321/functions/v1/chat-llama' \
-    --header 'apiKey: sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH' \
-    --data '{"name":"Functions"}'
-
-*/
+    return new Response(
+      JSON.stringify({ response: respuesta }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    )
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+    
+    return new Response(
+      JSON.stringify({ error: errorMessage }),
+      { 
+        status: 500, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    )
+  }
+})
