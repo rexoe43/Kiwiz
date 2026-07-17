@@ -12,6 +12,10 @@ dependencies:
   flutter:
     sdk: flutter
   
+  device_info_plus: ^9.0.0
+
+  package_info_plus: ^4.0.0
+  
   cupertino_icons: ^1.0.6
   
   supabase_flutter: ^2.0.0
