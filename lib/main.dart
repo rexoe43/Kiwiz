@@ -8,14 +8,14 @@ import 'screens/chat_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Cargar variables de entorno desde .env
+  
   await dotenv.load();
   
-  // Obtener credenciales de Supabase
+  
   final supabaseUrl = dotenv.env['SUPABASE_URL'];
   final supabaseAnonKey = dotenv.env['SUPABASE_ANON_KEY'];
   
-  // Validar que existan
+  
   if (supabaseUrl == null || supabaseAnonKey == null) {
     throw Exception(
       'Faltan variables de entorno: SUPABASE_URL y SUPABASE_ANON_KEY '
@@ -23,7 +23,7 @@ void main() async {
     );
   }
   
-  // Inicializar Supabase
+  
   await Supabase.initialize(
     url: supabaseUrl,
     publishableKey: supabaseAnonKey,
