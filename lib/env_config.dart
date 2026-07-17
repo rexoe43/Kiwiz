@@ -3,7 +3,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 
 class EnvConfig {
-  static EnvConfig? _instance;
+  
   static const _secureStorage = FlutterSecureStorage();
   
   static const String _keySupabaseUrl = 'supabase_url';
@@ -29,9 +29,13 @@ class EnvConfig {
       _cachedSupabaseUrl = envUrl;
       _cachedSupabaseAnonKey = envAnonKey;
       
-      print('Configuración cargada desde .env y almacenada de forma segura');
+      if (kDebugMode) {
+        print('Configuración cargada desde .env y almacenada de forma segura');
+      }
     } catch (e) {
-      print('Error al inicializar configuración: $e');
+      if (kDebugMode) {
+        print('Error al inicializar configuración: $e');
+      }
     }
   }
   
@@ -47,7 +51,9 @@ class EnvConfig {
         return stored;
       }
     } catch (e) {
-      print('Error al leer almacenamiento seguro: $e');
+      if (kDebugMode) {
+        print('Error al leer almacenamiento seguro: $e');
+      }
     }
     
     throw Exception('No se pudo obtener la URL de Supabase');
@@ -65,7 +71,9 @@ class EnvConfig {
         return stored;
       }
     } catch (e) {
-      print(' Error al leer almacenamiento seguro: $e');
+      if (kDebugMode) {
+        print('Error al leer almacenamiento seguro: $e');
+      }
     }
     
     throw Exception('No se pudo obtener la Anon Key de Supabase');
@@ -76,5 +84,9 @@ class EnvConfig {
     await _secureStorage.delete(key: _keySupabaseAnonKey);
     _cachedSupabaseUrl = null;
     _cachedSupabaseAnonKey = null;
+    
+    if (kDebugMode) {
+      print('Credenciales eliminadas del almacenamiento seguro');
+    }
   }
 }

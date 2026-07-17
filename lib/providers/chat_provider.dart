@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../services/supabase_service.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../services/supebase_service.dart';
 
 class Message {
   final String content;
@@ -31,7 +32,7 @@ class Message {
 class ChatProvider extends ChangeNotifier {
   final SupabaseService _supabaseService = SupabaseService();
   
-  List<Message> _messages = [];
+  final List<Message> _messages = [];
   bool _isLoading = false;
   String? _error;
 
@@ -66,14 +67,15 @@ class ChatProvider extends ChangeNotifier {
 
     try {
       
-      final response = await _supabaseService._client.functions.invoke(
-        'chat-llama', // Nombre de tu Edge Function
+      final supabase = Supabase.instance.client;
+      final response = await supabase.functions.invoke(
+        'chat-llama',
         body: {
           'message': content,
           'history': _messages
-              .where((m) => !m.isUser) 
-              .map((m) => m.content)
-              .toList(),
+          .where((m) => !m.isUser)
+          .map((m) => m.content)
+          .toList(),
         },
       );
 
@@ -86,7 +88,7 @@ class ChatProvider extends ChangeNotifier {
         
         // Update the credits
         await _supabaseService.updateChatsUsed(
-          (await _supabaseService.getProfile()).chatsUsed + 1
+          (await _supabaseService.getProfile()).chatUsed + 1
         );
         
         _isLoading = false;

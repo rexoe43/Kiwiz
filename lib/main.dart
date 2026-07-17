@@ -1,44 +1,39 @@
-import 'pacakge:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
-import 'package:supabase_flutter/supabase_flutter,dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'providers/chat_provider.dart';
-import 'env_config.dart';
-import 'utils/logger.dart';
+import 'screens/chat_screen.dart';
 
 void main() async {
-  WidgetsFlutterBindign.ensureInitialized();
-
-  try {
-    await EnvConfig.init();
-
-    final supabaseUrl = await EnvConfig.getSupabaseUrl();
-    final supabaseAnonKey = await EnvCOnfig.getSupabaseAnonKey();
-
-    await Supabase.initialize(
-      url: supabaseUrl,
-      anonKey: supabaseAnonKey,
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Cargar variables de entorno desde .env
+  await dotenv.load();
+  
+  // Obtener credenciales de Supabase
+  final supabaseUrl = dotenv.env['SUPABASE_URL'];
+  final supabaseAnonKey = dotenv.env['SUPABASE_ANON_KEY'];
+  
+  // Validar que existan
+  if (supabaseUrl == null || supabaseAnonKey == null) {
+    throw Exception(
+      'Faltan variables de entorno: SUPABASE_URL y SUPABASE_ANON_KEY '
+      'deben estar definidas en el archivo .env'
     );
-
-    AppLogger.sucess('Supabase inicializado correctamente');
-  } catch(e) {
-    AppLogger.error('Error al inicializar la aplicación', e);
-
-    if (kDebugMode) {
-      runApp(const ErrorApp());
-      return;
-    }
-
-    runApp(const ErrorApp(
-      message: 'Error al iniciar la aplicación, Por favor, intenta de nuevo.',
-    ));
   }
-
+  
+  // Inicializar Supabase
+  await Supabase.initialize(
+    url: supabaseUrl,
+    publishableKey: supabaseAnonKey,
+  );
+  
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  constMyapp({super.key});
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +42,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ChatProvider()),
       ],
       child: MaterialApp(
-        title: 'Kiwiz - Asisnte de Estudio',
+        title: 'Kiwiz - Asistente de Estudio',
         theme: ThemeData(
           primarySwatch: Colors.green,
           useMaterial3: true,
@@ -58,58 +53,6 @@ class MyApp extends StatelessWidget {
         ),
         home: const ChatScreen(),
         debugShowCheckedModeBanner: false,
-      ),
-    );
-  }
-}
-
-class ErrorApp extends StatelssWidget {
-  final String? message;
-
-  const ErrorApp({super.key, this.message});
-
-  @overide
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              minAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.error_outline,
-                  size: 80,
-                  color: Colors.red.shade700,
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  'Error de Configuración',
-                  style: Theme.of(context).textTheme.headlineMedium,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  message ?? 'Hubo un problema al iniciar la aplicación',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    runApp(const MyApp());
-                  },
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Reintentar'),
-                  style: ElevatedBytton.styleFrom(
-                    backgroundColor: Colors.green.shade700,
-                    foregroundColor: Colors.white,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
       ),
     );
   }

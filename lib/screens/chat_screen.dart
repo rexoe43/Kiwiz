@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/chat_provider.dart';
-import '../services/supabase_service.dart';
+import '../services/supebase_service.dart';
 import '../models/profile_model.dart';
 
 
@@ -116,7 +116,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 margin: const EdgeInsets.only(right: 16),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
@@ -124,7 +124,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     const Icon(Icons.bolt, color: Colors.white, size: 18),
                     const SizedBox(width: 6),
                     Text(
-                      'Consultas de IA: ${profile.chatsUsed} / ${profile.chatLimit}',
+                      'Consultas de IA: ${profile.chatUsed} / ${profile.chatLimit}',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 14,
@@ -221,7 +221,7 @@ class _ChatScreenState extends State<ChatScreen> {
             color: Colors.white,
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.withOpacity(0.2),
+                color: Colors.grey.withValues(alpha: 0.2),
                 spreadRadius: 1,
                 blurRadius: 8,
                 offset: const Offset(0, -2),

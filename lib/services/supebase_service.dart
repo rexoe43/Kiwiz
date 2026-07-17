@@ -1,12 +1,13 @@
 import 'dart:async';
+import 'package:flutter/cupertino.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/profile_model.dart';
-import '../env_config.dart';
 
 class SupabaseService {
   static SupabaseClient? _client;
   
-  /// Obtener el cliente de Supabase (singleton)
+  
+  
   static SupabaseClient get client {
     _client ??= Supabase.instance.client;
     return _client!;
@@ -39,13 +40,13 @@ class SupabaseService {
     return client.auth.currentUser;
   }
   
-  /// Stream para escuchar cambios en tiempo real del perfil
+  // Stream for real time
   Stream<ProfileModel> profileStream() {
     final user = getCurrentUser();
     if (user == null) {
       return Stream.value(const ProfileModel(
         chatLimit: 20,
-        chatsUsed: 0,
+        chatUsed: 0,
         hasRemainingChats: true,
       ));
     }
@@ -58,7 +59,7 @@ class SupabaseService {
           if (data.isEmpty) {
             return const ProfileModel(
               chatLimit: 20,
-              chatsUsed: 0,
+              chatUsed: 0,
               hasRemainingChats: true,
             );
           }
@@ -73,7 +74,7 @@ class SupabaseService {
       if (user == null) {
         return const ProfileModel(
           chatLimit: 20,
-          chatsUsed: 0,
+          chatUsed: 0,
           hasRemainingChats: true,
         );
       }
@@ -89,17 +90,17 @@ class SupabaseService {
         await createProfile(user.id);
         return const ProfileModel(
           chatLimit: 20,
-          chatsUsed: 0,
+          chatUsed: 0,
           hasRemainingChats: true,
         );
       }
       
       return ProfileModel.fromJson(response);
     } catch (e) {
-      print('⚠️ Error al obtener perfil: $e');
+      debugPrint(' Error al obtener perfil: $e');
       return const ProfileModel(
         chatLimit: 20,
-        chatsUsed: 0,
+        chatUsed: 0,
         hasRemainingChats: true,
       );
     }
@@ -116,7 +117,7 @@ class SupabaseService {
         'created_at': DateTime.now().toIso8601String(),
       });
     } catch (e) {
-      print('⚠️ Error al crear perfil: $e');
+      debugPrint(' Error al crear perfil: $e');
     }
   }
 
@@ -134,7 +135,7 @@ class SupabaseService {
           })
           .eq('id', user.id);
     } catch (e) {
-      print('⚠️ Error al actualizar créditos: $e');
+      debugPrint('Error al actualizar créditos: $e');
     }
   }
 }
