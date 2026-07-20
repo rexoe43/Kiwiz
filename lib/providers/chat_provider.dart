@@ -41,7 +41,7 @@ class ChatProvider extends ChangeNotifier {
   final SupabaseService _supabaseService = SupabaseService();
   final SupabaseClient _supabaseClient = Supabase.instance.client;
   
-  List<Message> _messages = [];
+  final List<Message> _messages = [];
   bool _isLoading = false;
   String? _error;
 
@@ -81,7 +81,7 @@ class ChatProvider extends ChangeNotifier {
           'message': content,
           'history': history, 
         },
-        method: 'POST',
+        method: HttpMethod.post,
       );
 
       // Procesar respuesta
