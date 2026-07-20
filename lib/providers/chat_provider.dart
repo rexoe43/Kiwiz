@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/supebase_service.dart';
 
+/// Modelo de mensaje
 class Message {
   final String content;
   final bool isUser;
@@ -14,7 +15,6 @@ class Message {
     DateTime? timestamp,
   }) : timestamp = timestamp ?? DateTime.now();
 
-  
   Message copyWith({
     String? content,
     bool? isUser,
@@ -26,13 +26,22 @@ class Message {
       timestamp: timestamp ?? this.timestamp,
     );
   }
+
+  /// Convertir a JSON para enviar a la API
+  Map<String, dynamic> toJson() {
+    return {
+      'role': isUser ? 'user' : 'assistant',
+      'content': content,
+    };
+  }
 }
 
-// Provider for the chat funcionality
+/// Provider que maneja el estado reactivo y la comunicación con la Edge Function
 class ChatProvider extends ChangeNotifier {
   final SupabaseService _supabaseService = SupabaseService();
+  final SupabaseClient _supabaseClient = Supabase.instance.client;
   
-  final List<Message> _messages = [];
+  List<Message> _messages = [];
   bool _isLoading = false;
   String? _error;
 
@@ -41,17 +50,14 @@ class ChatProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
 
-  // Clear the error
   void clearError() {
     _error = null;
     notifyListeners();
   }
 
-  
   Future<bool> sendMessage(String content) async {
     if (content.trim().isEmpty) return false;
 
-    // Verify if the user has remaining chats
     final profile = await _supabaseService.getProfile();
     if (!profile.hasRemainingChats) {
       _error = 'Has agotado tus créditos mensuales de IA';
@@ -59,7 +65,6 @@ class ChatProvider extends ChangeNotifier {
       return false;
     }
 
-    
     _messages.add(Message(content: content, isUser: true));
     _isLoading = true;
     _error = null;
@@ -67,50 +72,53 @@ class ChatProvider extends ChangeNotifier {
 
     try {
       
-      final supabase = Supabase.instance.client;
-      final response = await supabase.functions.invoke(
-        'chat-llama',
+      final history = _messages.map((m) => m.toJson()).toList();
+      
+      
+      final response = await _supabaseClient.functions.invoke(
+        'chat-llama', 
         body: {
           'message': content,
-          'history': _messages
-          .where((m) => !m.isUser)
-          .map((m) => m.content)
-          .toList(),
+          'history': history, 
         },
+        method: 'POST',
       );
 
-      
-      if (response.data != null) {
-        final aiResponse = response.data['response'] as String? ?? 
-                          'Lo siento, no pude procesar tu consulta.';
+      // Procesar respuesta
+      if (response.status == 200 && response.data != null) {
+        // Extraer la respuesta de la IA
+        final aiResponse = response.data['response'] as String?;
         
-        _messages.add(Message(content: aiResponse, isUser: false));
-        
-        // Update the credits
-        await _supabaseService.updateChatsUsed(
-          (await _supabaseService.getProfile()).chatUsed + 1
-        );
-        
-        _isLoading = false;
-        notifyListeners();
-        return true;
+        if (aiResponse != null && aiResponse.isNotEmpty) {
+          _messages.add(Message(content: aiResponse, isUser: false));
+          
+          final updatedProfile = await _supabaseService.getProfile();
+          await _supabaseService.updateChatsUsed(updatedProfile.chatUsed + 1);
+          
+          _isLoading = false;
+          notifyListeners();
+          return true;
+        } else {
+          throw Exception('La IA no generó una respuesta válida');
+        }
       } else {
-        throw Exception('Respuesta vacía de la IA');
+        final errorMsg = response.data?['error'] ?? 'Error desconocido';
+        throw Exception('Error en la Edge Function: $errorMsg');
       }
+      
     } catch (e) {
+      // Catch any exception
       _error = 'Error al procesar tu consulta: ${e.toString()}';
       _isLoading = false;
       notifyListeners();
       
-      // If the user fail to delete the message
-      // _messages.removeLast();
-      // notifyListeners();
+      
       
       return false;
     }
   }
 
-  // Clear the History
+  /// Limpiar historial de chat
   void clearChatHistory() {
     _messages.clear();
     _error = null;
