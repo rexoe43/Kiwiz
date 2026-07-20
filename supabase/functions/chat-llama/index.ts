@@ -15,7 +15,7 @@ serve(async (req: Request) => {
   try {
     const { message } = await req.json() as { message: string }
     
-    // Respuestas variadas de Kiwiz
+    
     const respuestas = [
       ` ¡Hola! Soy Kiwiz, tu asistente de estudio. Recibí tu mensaje: "${message}"\n\n¿En qué materia necesitas ayuda? ¡Estoy aquí para ti!`,
       `¡Excelente pregunta! "${message}"\n\nVamos a analizarlo juntos paso a paso. ¿Qué parte te genera más dudas?`,
