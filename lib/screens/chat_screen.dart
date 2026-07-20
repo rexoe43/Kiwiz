@@ -238,7 +238,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   minLines: 1,
                   textCapitalization: TextCapitalization.sentences,
                   decoration: InputDecoration(
-                    // ✅ TEXTO DESCRIPTIVO CUANDO NO HAY CRÉDITOS
+                    
                     hintText: isEnabled
                         ? 'Escribe tu consulta...'
                         : 'Has agotado tus créditos mensuales de IA',
